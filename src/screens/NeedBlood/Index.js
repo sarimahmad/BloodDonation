@@ -11,7 +11,7 @@ import {
   FlatList
 } from 'react-native';
 import BackHeader from '../../component/BackHeader';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import styles from '../loginScreen/styles';
 import NBscreen from '../NBscreen/Index';
 import CreatePostReceptor from '../CreatePostReceptor/Index';
@@ -20,6 +20,7 @@ import {SCREEN} from '../../helper/Constant';
 import  {WHITE} from '../../helper/Color';
 import { RecipentforDonorSearch } from '../../helper/api';
 import Loader from '../../component/Loader';
+import Cities from '../../cities.json';
 
 
 const NeedBlood = ({navigation}) => {
@@ -38,6 +39,11 @@ const NeedBlood = ({navigation}) => {
     {key: 3, label: 'A-'},
     {key: 4, label: 'B+'},
     {key: 5, label: 'B-'},
+    {key: 6, label: 'AB+'},
+    {key: 9, label: 'AB-'},
+    {key: 7, label: 'O+'},
+    {key: 8, label: 'O-'},
+    
   ]);
   const [cityData, setcityData] = useState([
     {key: 1, label: 'None'},
@@ -69,6 +75,16 @@ const NeedBlood = ({navigation}) => {
     setcr(false);
     setmsg(true);
   };
+  useEffect(()=>{
+    let citydata = [{key:0,label:'None'}];
+    let id = 0
+    Cities.map(val=>{
+      citydata.push({key:++id, label:val.name})
+    });
+    setcityData(citydata);
+    getAreas();
+
+  },[])
   const Search = async () => {
     setloader(true);
     let data = {
@@ -88,6 +104,43 @@ const NeedBlood = ({navigation}) => {
     });
     setloader(false);
   };
+
+
+  const getAreas = async () => {
+    setloader(true);
+    let data = {
+      status: 'Active',
+      city: 'default' , 
+      area: 'default',
+      bloodGroup:  'default',
+    }
+    let areas = [{key:0, label: 'None'}];
+    let id = 0;
+    await RecipentforDonorSearch(data).then(response=>{
+      if (response.data.message){
+          response.data.ActiveRecipetnts.map(val=>{
+
+            areas.push({key: ++id, label: val.Area});
+          });
+          areas = uniqureArea(areas);
+          setareaData(areas);
+        setloader(false);
+      } else {
+        alert('Some thing went wrong Try Again !');
+        setloader(false);
+      }
+    });
+    setloader(false);
+  };
+
+  const uniqureArea =(data)=>{
+    let arr = data.filter((value, index, self) =>
+        index === self.findIndex((t) => (
+         t.label === value.label
+  ))
+)
+return arr;
+  }
   return (
     <SafeAreaView style={styles.mainContainer}>
       <StatusBar

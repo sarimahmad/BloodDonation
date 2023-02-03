@@ -75,7 +75,7 @@ import {
             style={styles.Pressable}
 
           >
-            <Text style={styles.insidePressableTxt}>SIGN_IN</Text>
+            <Text style={styles.insidePressableTxt}>Forgot Password</Text>
           </Pressable>
             </View>
         {loader && <Loader loading={loader} />}

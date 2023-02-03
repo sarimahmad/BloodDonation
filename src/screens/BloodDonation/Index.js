@@ -12,7 +12,7 @@ import {
   FlatList,
 } from 'react-native';
 import BackHeader from '../../component/BackHeader';
-import React, {useState, useRef} from 'react';
+import React, {useState, useEffect} from 'react';
 import styles from '../loginScreen/styles';
 import WnbScreen from '../WnbScreen/Index';
 import CreatePostDonar from '../CreatePostDonar/Index';
@@ -20,7 +20,7 @@ import ModalSelector from 'react-native-modal-selector-searchable';
 import {SCREEN} from '../../helper/Constant';
 import { DonorSearchForRecipents } from '../../helper/api';
 import Loader from '../../component/Loader';
-
+import Citties from '../../cities.json'
 
 
 
@@ -36,12 +36,19 @@ const BloodDonation = ({navigation}) => {
   const [city, setCity] = useState('');
   const [searchData, setsearchData] = useState([]);
 
+ 
+
   const [group, setgroup] = useState([
     {key: 1, label: 'None'},
     {key: 2, label: 'A+'},
     {key: 3, label: 'A-'},
     {key: 4, label: 'B+'},
     {key: 5, label: 'B-'},
+    {key: 6, label: 'AB+'},
+    {key: 9, label: 'AB-'},
+    {key: 7, label: 'O+'},
+    {key: 8, label: 'O-'},
+
   ]);
   const [cityData, setcityData] = useState([
     {key: 1, label: 'None'},
@@ -58,6 +65,17 @@ const BloodDonation = ({navigation}) => {
     {key: 6, label: 'Saddar'},
     {key: 7, label: 'Gulshan'},
   ]);
+  useEffect(()=>{
+    let citydata = [{key:0,label:'None'}];
+    let id = 0
+    Citties.map(val=>{
+      citydata.push({key:++id, label:val.name})
+    });
+    setcityData(citydata);
+    getAreas()
+
+
+  },[])
   const wnbFunc = () => {
     setwnb(true);
     setcr(false);
@@ -72,6 +90,33 @@ const BloodDonation = ({navigation}) => {
     setwnb(false);
     setcr(false);
     setmsg(true);
+  };
+  
+  const getAreas = async () => {
+    setloader(true);
+    let data = {
+      status: 'Active',
+      city: 'default' , 
+      area: 'default',
+      bloodGroup:  'default',
+    }
+    let areas = [{key:0, label: 'None'}];
+    let id = 0;
+    await DonorSearchForRecipents(data).then(response=>{
+      if (response.data.message === 'Recipents lists'){
+          response.data.activeDonors.map(val=>{
+            areas.push({key: ++id, label: val.Area});
+          });
+          
+          areas = uniqureArea(areas);
+          setareaData(areas);
+        setloader(false);
+      } else {
+        alert('Some thing went wrong Try Again !');
+        setloader(false);
+      }
+    });
+    setloader(false);
   };
 
   const Search = async () => {
@@ -93,6 +138,14 @@ const BloodDonation = ({navigation}) => {
     });
     setloader(false);
   };
+  const uniqureArea =(data)=>{
+    let arr = data.filter((value, index, self) =>
+        index === self.findIndex((t) => (
+         t.label === value.label
+  ))
+)
+return arr;
+  }
 
   return (
     <SafeAreaView style={styles.mainContainer}>
